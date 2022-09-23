@@ -13,6 +13,8 @@ echo '# https://johnshall.github.io/Shadowrocket-ADBlock-Rules-Forever/sr_top500
 
 cat /tmp/sr_top500_banlist_ad.conf | grep -ioP '^[DUI][^\r\n]+,reject($|#| )' >> sr_top500_banlist_ad.reject.list
 
+sed -i 's/^DOMAIN-SUFFIX,\./DOMAIN-SUFFIX,/gi' sr_top500_banlist_ad.reject.list
+
 # proxy
 echo '# https://johnshall.github.io/Shadowrocket-ADBlock-Rules-Forever/sr_top500_banlist_ad.conf' > sr_top500_banlist_ad.proxy.list
 
