@@ -1,0 +1,28 @@
+name: shadowrocket
+
+on:
+  schedule:
+    # https://github.com/Johnshall/Shadowrocket-ADBlock-Rules-Forever/blob/master/.github/workflows/main.yml#L5-L6
+    - cron:  '59 23 * * *'
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run a multi-line script
+        run: |
+          bash shadowrocket/shadowrocket.sh
+
+      - name: Run a multi-line script
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add shadowrocket
+          git commit -m ':sparkles:' || exit 0
+          git branch -M assets
+          git push -f -u origin assets
