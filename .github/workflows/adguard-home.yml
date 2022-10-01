@@ -1,0 +1,27 @@
+name: adguard-home
+
+on:
+  schedule:
+      - cron: "0 1 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run a multi-line script
+        run: |
+          cd adguard-home
+          bash ./generate.sh
+
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add whitelist_full_combine.txt
+          git add ipset.txt
+          git commit -m ':sparkles:' || exit 0
+          git branch -M assets
+          git push -f -u origin assets

@@ -1,0 +1,27 @@
+#! /bin/bash
+
+set -e
+
+INTERFACE=$(ip route | grep '^default' | grep -oP '(?<=dev )[^ \n]+')
+
+if [ -z "${INTERFACE}" ]; then
+    echo "interface"
+    exit 1
+fi
+
+rm -f /tmp/geoip.dat
+rm -f /tmp/geosite.dat
+
+curl --silent --fail --interface "${INTERFACE}" --dns-interface "${INTERFACE}" --doh-url https://120.53.53.53/dns-query --output /tmp/geoip.dat https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat
+
+curl --silent --fail  --interface "${INTERFACE}" --dns-interface "${INTERFACE}" --doh-url https://120.53.53.53/dns-query --output /tmp/geosite.dat https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat
+
+
+systemctl stop v2ray || echo
+
+mv /tmp/geoip.dat /usr/local/etc/v2ray/geoip.dat
+mv /tmp/geosite.dat /usr/local/etc/v2ray/geosite.dat
+
+systemctl restart v2ray
+
+
