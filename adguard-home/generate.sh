@@ -11,11 +11,11 @@ sed -i '1i  tls://8.8.4.4' whitelist_full_combine.txt
 sed -i '1i  tls://1.0.0.1' whitelist_full_combine.txt
 # quad9
 sed -i '1i  tls://9.9.9.10' whitelist_full_combine.txt
-# adguard
-sed -i '1i  tls://94.140.14.140' whitelist_full_combine.txt
-sed -i '1i  quic://94.140.14.140' whitelist_full_combine.txt
-sed -i '1i  tls://94.140.14.141' whitelist_full_combine.txt
-sed -i '1i  quic://94.140.14.141' whitelist_full_combine.txt
+# # adguard
+# sed -i '1i  tls://94.140.14.140' whitelist_full_combine.txt
+# sed -i '1i  quic://94.140.14.140' whitelist_full_combine.txt
+# sed -i '1i  tls://94.140.14.141' whitelist_full_combine.txt
+# sed -i '1i  quic://94.140.14.141' whitelist_full_combine.txt
 # proxy
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]*jsdelivr[a-zA-Z\d\.\-_]+//g' whitelist_full_combine.txt
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]*google[a-zA-Z0-9\.\-]*//g' whitelist_full_combine.txt
