@@ -1,16 +1,22 @@
 #! /bin/bash
 
 set -e
+set -x
 
 wget -qq https://github.com/hezhijie0327/GFWList2AGH/raw/main/gfwlist2adguardhome/whitelist_full_combine.txt
 
 sed -i 's/https:\/\/doh\.pub:443\/dns-query/tls:\/\/120\.53\.53\.53/g' whitelist_full_combine.txt
-# google
-sed -i '1i  tls://8.8.4.4' whitelist_full_combine.txt
 # cloudflare
 sed -i '1i  tls://1.0.0.1' whitelist_full_combine.txt
+# google
+sed -i '1i  tls://8.8.4.4' whitelist_full_combine.txt
 # quad9
 sed -i '1i  tls://9.9.9.10' whitelist_full_combine.txt
+
+sed -i '1i  tls://[2606:4700:4700:0:0:0:0:1001]' whitelist_full_combine.txt
+sed -i '1i  tls://[2001:4860:4860:0:0:0:0:8844]' whitelist_full_combine.txt
+sed -i '1i  tls://[2620:fe::9]' whitelist_full_combine.txt
+
 # # adguard
 # sed -i '1i  tls://94.140.14.140' whitelist_full_combine.txt
 # sed -i '1i  quic://94.140.14.140' whitelist_full_combine.txt
