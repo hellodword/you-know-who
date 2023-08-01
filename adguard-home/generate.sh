@@ -12,6 +12,10 @@ sed -i '1i  tls://1.0.0.1' whitelist_full_combine.txt
 sed -i '1i  tls://8.8.4.4' whitelist_full_combine.txt
 # quad9
 sed -i '1i  tls://9.9.9.10' whitelist_full_combine.txt
+# opendns
+sed -i '1i  tls://208.67.222.222' whitelist_full_combine.txt
+# adguardhome
+sed -i '1i  tls://94.140.14.14' whitelist_full_combine.txt
 
 sed -i '1i  tls://[2606:4700:4700:0:0:0:0:1001]' whitelist_full_combine.txt
 sed -i '1i  tls://[2001:4860:4860:0:0:0:0:8844]' whitelist_full_combine.txt
