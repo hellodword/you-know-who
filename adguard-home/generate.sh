@@ -30,6 +30,10 @@ sed -i '1i  tls://[2620:fe::9]' whitelist_full_combine.txt
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]*jsdelivr[a-zA-Z\d\.\-_]+//g' whitelist_full_combine.txt
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]*google[a-zA-Z0-9\.\-]*//g' whitelist_full_combine.txt
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]*apple[a-zA-Z0-9\.\-]*//g' whitelist_full_combine.txt
+
+# https://github.com/microsoft/vscode/issues/201318
+sed -i -E 's/\/vscode\.download\.prss\.microsoft\.com//g' whitelist_full_combine.txt
+
 # reduce
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]+\.mcdn\.bilivideo\.cn//g' whitelist_full_combine.txt
 sed -i -E 's/\/[a-zA-Z0-9\.\-_]+\.cdntips\.net//g' whitelist_full_combine.txt
