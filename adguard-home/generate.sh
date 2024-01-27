@@ -5,7 +5,7 @@ set -x
 
 wget -qq https://github.com/hezhijie0327/GFWList2AGH/raw/main/gfwlist2adguardhome/whitelist_full_combine.txt
 
-# sed -i 's/https:\/\/doh\.pub:443\/dns-query/tls:\/\/120\.53\.53\.53/g' whitelist_full_combine.txt
+sed -i 's/https:\/\/doh\.pub:443\/dns-query/tls:\/\/120\.53\.53\.53/g' whitelist_full_combine.txt
 # # cloudflare
 # sed -i '1i  tls://1.0.0.1' whitelist_full_combine.txt
 # # google
