@@ -27,7 +27,7 @@ jobs:
         run: |
           mkdir -p shadowrocket
           cd shadowrocket
-          rm reading.list
+          rm -rf reading.list
           bash ../main-src/shadowrocket/reading.sh
           [ -f reading.list ]
           git add reading.list
