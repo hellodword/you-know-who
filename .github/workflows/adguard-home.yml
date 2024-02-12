@@ -27,8 +27,11 @@ jobs:
         run: |
           mkdir -p adguard-home
           cd adguard-home
+          rm whitelist_full_combine.txt
+          rm ipset.txt
           bash ../main-src/adguard-home/generate.sh
-
+          [ -f whitelist_full_combine.txt ]
+          [ -f ipset.txt ]
           git add whitelist_full_combine.txt
           git add ipset.txt
 
