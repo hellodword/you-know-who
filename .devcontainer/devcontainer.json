@@ -1,6 +1,6 @@
 {
-	"image": "mcr.microsoft.com/devcontainers/typescript-node",
-	"customizations": {
-		"vscode": { "extensions": ["esbenp.prettier-vscode"] }
-	}
+  "image": "mcr.microsoft.com/devcontainers/typescript-node",
+  "customizations": {
+    "vscode": { "extensions": ["esbenp.prettier-vscode"] }
+  }
 }

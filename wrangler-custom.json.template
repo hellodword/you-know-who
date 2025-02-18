@@ -1,26 +1,26 @@
 {
-	"worker-a": {
-		"main": "./src/worker_a.js",
-		"routes": [
-			{
-				"pattern": "https://a.example.com/foo*",
-				"zone_name": "example.com"
-			}
-		]
-	},
-	"worker-b": {
-		"main": "./src/worker_b.js",
-		"routes": [
-			{
-				"pattern": "https://b.example.com/bar*",
-				"zone_name": "example.com"
-			}
-		],
-		"services": [
-			{
-				"binding": "WORKER_A",
-				"service": "worker-a"
-			}
-		]
-	}
+  "worker-a": {
+    "main": "./src/worker_a.js",
+    "routes": [
+      {
+        "pattern": "https://a.example.com/foo*",
+        "zone_name": "example.com"
+      }
+    ]
+  },
+  "worker-b": {
+    "main": "./src/worker_b.js",
+    "routes": [
+      {
+        "pattern": "https://b.example.com/bar*",
+        "zone_name": "example.com"
+      }
+    ],
+    "services": [
+      {
+        "binding": "WORKER_A",
+        "service": "worker-a"
+      }
+    ]
+  }
 }
