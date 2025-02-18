@@ -1,0 +1,22 @@
+{
+	"$schema": "https://www.unpkg.com/wrangler/config-schema.json",
+
+	"name": "you-know-who",
+	"main": "src/foo.js",
+
+	"keep_vars": false,
+	"send_metrics": false,
+	"workers_dev": false,
+	"preview_urls": false,
+
+	"no_bundle": false,
+	"minify": true,
+	"upload_source_maps": false,
+
+	"compatibility_date": "2025-02-17",
+	"compatibility_flags": ["nodejs_compat"],
+
+	"logpush": false,
+
+	"routes": []
+}

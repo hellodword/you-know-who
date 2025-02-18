@@ -1,0 +1,17 @@
+{
+	"name": "you-know-who",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"deploy:all": "node scripts/generate.js && node scripts/deploy.js",
+		"dev:all": "node scripts/generate.js && node scripts/dev.js",
+		"deploy": "node scripts/generate.js && node scripts/wrangler.js deploy",
+		"dev": "node scripts/generate.js && node scripts/wrangler.js dev"
+	},
+	"devDependencies": {
+		"@clack/prompts": "^0.10.0",
+		"jsonc-parser": "^3.3.1",
+		"wrangler": "^3.109.1"
+	}
+}
