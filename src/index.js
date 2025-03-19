@@ -1,4 +1,4 @@
-import sb from './sb.json';
+import sb_1_11 from './sing-box-1.11.json';
 
 export default {
   async fetch(req, env) {
@@ -35,7 +35,9 @@ export default {
 const CLIENT_TYPES = {
   SHADOWROCKET: 'shadowrocket/',
   NEKOBOX: 'nekobox/',
+  // https://github.com/SagerNet/sing-box-for-android/blob/3a2fc9c8802f0c40f0b1fd2d7acdcabb7aa0855f/app/src/main/java/io/nekohasekai/sfa/utils/HTTPClient.kt#L12-L23
   SINGBOX_ANDROID: 'sfa/',
+  // https://github.com/SagerNet/sing-box-for-ios/blob/b17f2790cbc6a541a57b6cbc8859344cf9469653/SFI/Service/HTTPClient.swift#L5-L14
   SINGBOX_IOS: 'sfi/',
 };
 
@@ -181,7 +183,7 @@ function generateHy2(clientType, serverAddr, realHost, remark, password, port) {
 }
 
 function generateSingboxConfig(env, outbounds, secret) {
-  const tpl = structuredClone(sb);
+  const tpl = structuredClone(sb_1_11);
 
   tpl.outbounds = tpl.outbounds || [];
   tpl.outbounds.push(...outbounds);
