@@ -5,6 +5,12 @@ export default {
     const url = new URL(req.url);
     const params = Object.fromEntries(url.searchParams);
 
+    const assets = params.assets;
+    if (assets) {
+      url.pathname = assets.replace(/^\/*/, '/');
+      return env.ASSETS.fetch(url);
+    }
+
     let rules = [];
     try {
       rules = JSON.parse(params.rules || '[]');
@@ -113,7 +119,7 @@ function generateVmess(clientType, serverAddr, realHost, remark, uuid, port, pat
   const vmessConfigs = {
     SHADOWROCKET: () =>
       `vmess://${base64Encode(
-        `auto:${uuid}@${serverAddr}:${port}`
+        `auto:${uuid}@${serverAddr}:${port}`,
       )}?remarks=${remark}&obfsParam=%7B%22Host%22:%22${realHost}%22%7D&path=${path}&obfs=websocket&tls=1&mux=1&alterId=0&sni=${realHost}`,
 
     NEKOBOX: () =>
@@ -134,7 +140,7 @@ function generateVmess(clientType, serverAddr, realHost, remark, uuid, port, pat
           tls: 'tls',
           type: '',
           v: '2',
-        })
+        }),
       )}`,
 
     SINGBOX_ANDROID: SINGBOX,

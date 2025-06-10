@@ -18,5 +18,9 @@
 
   "logpush": false,
 
-  "routes": []
+  "routes": [],
+  "assets": {
+    "directory": "./assets",
+    "binding": "ASSETS"
+  }
 }
