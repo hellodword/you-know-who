@@ -6,7 +6,7 @@
 npm ci
 
 # minimal scopes
-npx wrangler login --scopes account:read --scopes user:read --scopes workers_scripts:write --scopes workers_routes:write --scopes zone:read
+npx wrangler login --browser false --scopes account:read --scopes user:read --scopes workers_scripts:write --scopes workers_routes:write --scopes zone:read
 
 npx wrangler whoami
 
