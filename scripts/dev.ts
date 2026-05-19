@@ -1,11 +1,10 @@
-import { spawn } from 'child_process';
-import { readJsoncFile, topologicalSort } from './common.js';
+import { spawn } from 'node:child_process';
+import { errorMessage, readJsoncFile, topologicalSort, type WorkerConfigMap } from './common.ts';
 
-function devAll() {
+function devAll(): void {
   try {
-    const customJson = readJsoncFile('wrangler-custom.json');
-
-    const configs = [];
+    const customJson = readJsoncFile<WorkerConfigMap>('wrangler-custom.json');
+    const configs: string[] = [];
 
     // Reverse the dependency order so the top-level worker config is passed to wrangler first
     // in the shared local dev session.
@@ -22,10 +21,10 @@ function devAll() {
     });
 
     child.on('close', (code) => {
-      process.exit(code);
+      process.exit(code ?? 1);
     });
   } catch (error) {
-    console.error(`An unexpected error occurred: ${error.message}`);
+    console.error(`An unexpected error occurred: ${errorMessage(error)}`);
     process.exit(1);
   }
 }

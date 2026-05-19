@@ -4,14 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy:all": "node scripts/generate.js && node scripts/deploy.js",
-    "dev:all": "node scripts/generate.js && node scripts/dev.js",
-    "deploy": "node scripts/generate.js && node scripts/wrangler.js deploy",
-    "dev": "node scripts/generate.js && node scripts/wrangler.js dev"
+    "deploy:all": "tsx scripts/generate.ts && tsx scripts/deploy.ts",
+    "dev:all": "tsx scripts/generate.ts && tsx scripts/dev.ts",
+    "deploy": "tsx scripts/generate.ts && tsx scripts/wrangler.ts deploy",
+    "dev": "tsx scripts/generate.ts && tsx scripts/wrangler.ts dev",
+    "check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@clack/prompts": "^0.10.1",
+    "@cloudflare/workers-types": "^4.20260519.1",
+    "@types/node": "^25.9.0",
     "jsonc-parser": "^3.3.1",
+    "tsx": "^4.22.2",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6",
     "wrangler": "^4.12.0"
   }
 }

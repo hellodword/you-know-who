@@ -1,6 +1,6 @@
 {
   "worker-a": {
-    "main": "./src/worker_a.js",
+    "main": "./src/worker_a.ts",
     "routes": [
       {
         "pattern": "https://a.example.com/foo*",
@@ -9,7 +9,7 @@
     ]
   },
   "worker-b": {
-    "main": "./src/worker_b.js",
+    "main": "./src/worker_b.ts",
     "routes": [
       {
         "pattern": "https://b.example.com/bar*",

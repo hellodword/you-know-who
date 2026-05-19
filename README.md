@@ -2,12 +2,13 @@
 
 这是一个 `Cloudflare Worker` 项目，承担两项彼此独立的职责：
 
-1. 为 `Shadowrocket`、`NekoBox`、`sing-box` 生成订阅内容。
+1. 为 `Shadowrocket`、`sing-box` 生成订阅内容。
 2. 通过 Worker 的 `ASSETS` 绑定提供静态规则文件。
 
 ## 仓库结构
 
-- `src/index.js`：Worker 入口。根据请求分流到静态资源或订阅生成逻辑。
+- `src/index.ts`：Worker 入口。根据请求分流到静态资源或订阅生成逻辑。
+- `src/subscription/`：客户端识别、规则校验、订阅渲染与 `sing-box` 配置拼装逻辑。
 - `src/sing-box-1.11.json`：`sing-box` 基础模板。运行时会把生成出的节点追加进去。
 - `assets/`：通过 `?assets=...` 暴露的静态规则文件。
 - `wrangler.json.template`：提交到仓库的共享 Wrangler 默认配置。
@@ -39,7 +40,7 @@ npx wrangler whoami
 ```json
 {
   "sub-generator": {
-    "main": "src/index.js",
+    "main": "src/index.ts",
     "routes": [
       {
         "pattern": "https://sub.example.com/worker-path*",
@@ -72,12 +73,14 @@ WARP_PRIVATE_KEY=replace-me
 - `npm run deploy`：先生成配置，再交互选择要部署的 Worker，最后调用 `wrangler deploy`。
 - `npm run dev:all`：生成配置后，在同一个本地开发会话里启动所有已配置 Worker。
 - `npm run deploy:all`：生成配置后，按依赖顺序依次部署所有 Worker。
+- `npm run check`：执行 TypeScript 类型检查。
+- `npm test`：运行 Vitest 测试。
 
 脚本链路和维护约定见 [`docs/maintenance.md`](docs/maintenance.md)。
 
 ## HTTP 行为
 
-`src/index.js` 暴露两种完全独立的请求模式。
+`src/index.ts` 暴露两种完全独立的请求模式。
 
 ### 1. 静态资源
 
@@ -103,7 +106,9 @@ GET /worker-path?assets=shadowrocket.conf
 | `client` | 否   | 覆盖客户端识别结果；未提供时会读取 `User-Agent`。                        |
 | `secret` | 否   | 只在生成 `sing-box` 输出时使用，会写入 `experimental.clash_api.secret`。 |
 
-每个规则对象可以包含：
+每个规则对象必须包含 `tag`、`protocol`、`host`。`port` 可省略，默认是 `443`。
+
+`vmess` 规则还必须包含 `uuid` 和 `path`：
 
 ```json
 {
@@ -116,7 +121,7 @@ GET /worker-path?assets=shadowrocket.conf
 }
 ```
 
-对于 `hy2`，使用 `password`，而不是 `uuid` / `path`。
+对于 `hy2`，使用 `password`，而不是 `uuid` / `path`。不支持的客户端或规则会返回 `400`。
 
 ## 运行时变量
 
@@ -130,12 +135,9 @@ GET /worker-path?assets=shadowrocket.conf
 ## 各客户端输出行为
 
 - `Shadowrocket`：返回 base64 编码后的纯文本订阅，内容是生成出的 `vmess://` / `hysteria2://` 链接。
-- `NekoBox`：返回 base64 编码后的纯文本订阅，内容是该客户端对应格式的链接。
 - `sing-box` Android / iOS：返回基于 `src/sing-box-1.11.json` 拼装出的 JSON 配置，并把生成节点追加到 selector 与 urltest 分组中。
 
 客户端识别优先使用显式传入的 `client` 参数，否则读取请求头中的 `User-Agent`。当前内置识别标记如下：
 
-- `shadowrocket/`
-- `nekobox/`
-- `sfa/`：`sing-box` Android
-- `sfi/`：`sing-box` iOS
+- 显式 `client`：`shadowrocket`、`sing-box`、`singbox`、`sfa`、`sfi`
+- `User-Agent`：`shadowrocket/`、`sfa/`、`sfi/`
