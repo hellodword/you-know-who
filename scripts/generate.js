@@ -5,6 +5,7 @@ const wranglerJsonTpl = readJsoncFile('wrangler.json.template');
 
 const customJson = readJsoncFile('wrangler-custom.json');
 
+// Merge shared defaults with each private worker override into generated wrangler configs.
 Object.entries(customJson).forEach(([name, customConfig]) => {
   console.log(`Generating ${name} ...`);
 

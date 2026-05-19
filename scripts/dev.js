@@ -7,6 +7,8 @@ function devAll() {
 
     const configs = [];
 
+    // Reverse the dependency order so the top-level worker config is passed to wrangler first
+    // in the shared local dev session.
     const sortedNames = topologicalSort(customJson).reverse();
 
     for (const name of sortedNames) {

@@ -14,6 +14,8 @@ async function wrapper() {
 
     const wrangler = ['wrangler'];
 
+    // If the first argument is not a worker name, treat it as a wrangler subcommand and
+    // prompt for the target worker config interactively.
     let workerName = args[0];
     if (workerName in customJson) {
       wrangler.push(...['--config', `${workerName}-wrangler.json`]);

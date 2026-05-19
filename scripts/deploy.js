@@ -18,6 +18,7 @@ async function deployAll() {
   try {
     const customJson = readJsoncFile('wrangler-custom.json');
 
+    // Deploy providers first so service bindings resolve for downstream workers.
     const sortedNames = topologicalSort(customJson);
 
     for (const name of sortedNames) {
