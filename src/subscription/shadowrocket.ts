@@ -1,30 +1,30 @@
 import { base64Encode } from './base64';
-import type { ExpandedRule } from './rules';
+import { matchExpandedRule, type ExpandedRule, type Hy2Rule, type VmessRule } from './rules';
 
 export function renderShadowrocketOutbounds(expandedRules: ExpandedRule[]): string[] {
-  return expandedRules.map((expandedRule) => {
-    if (expandedRule.rule.protocol === 'vmess') {
-      return renderVmess(expandedRule);
-    }
+  return expandedRules.map((expandedRule) =>
+    matchExpandedRule(expandedRule, {
+      vmess: renderVmess,
+      hy2: renderHy2,
+    }),
+  );
+}
 
-    return renderHy2(expandedRule);
+function renderVmess(rule: VmessRule, { serverAddr, realHost, remark }: ExpandedRule): string {
+  const params = new URLSearchParams({
+    remarks: remark,
+    obfsParam: JSON.stringify({ Host: realHost }),
+    path: rule.path,
+    obfs: 'websocket',
+    tls: '1',
+    mux: '1',
+    alterId: '0',
+    sni: realHost,
   });
+
+  return `vmess://${base64Encode(`auto:${rule.uuid}@${serverAddr}:${rule.port}`)}?${params.toString()}`;
 }
 
-function renderVmess({ rule, serverAddr, realHost, remark }: ExpandedRule): string {
-  if (rule.protocol !== 'vmess') {
-    throw new Error('Expected vmess rule');
-  }
-
-  return `vmess://${base64Encode(
-    `auto:${rule.uuid}@${serverAddr}:${rule.port}`,
-  )}?remarks=${remark}&obfsParam=%7B%22Host%22:%22${realHost}%22%7D&path=${rule.path}&obfs=websocket&tls=1&mux=1&alterId=0&sni=${realHost}`;
-}
-
-function renderHy2({ rule, serverAddr, realHost, remark }: ExpandedRule): string {
-  if (rule.protocol !== 'hy2') {
-    throw new Error('Expected hy2 rule');
-  }
-
+function renderHy2(rule: Hy2Rule, { serverAddr, realHost, remark }: ExpandedRule): string {
   return `hysteria2://${rule.password}@${serverAddr}:${rule.port}?peer=${realHost}&obfs=none#${remark}`;
 }

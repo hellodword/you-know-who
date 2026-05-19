@@ -2,8 +2,10 @@ export type ClientType = 'shadowrocket' | 'sing-box';
 
 const EXPLICIT_CLIENTS = new Map<string, ClientType>([
   ['shadowrocket', 'shadowrocket'],
+  ['sr', 'shadowrocket'],
   ['sing-box', 'sing-box'],
   ['singbox', 'sing-box'],
+  ['sb', 'sing-box'],
   ['sfa', 'sing-box'],
   ['sfi', 'sing-box'],
 ]);

@@ -1,12 +1,19 @@
 import { base64Encode } from './base64';
 import { detectClient } from './client';
 import { EnvConfigError, RuleParseError, RuleValidationError } from './errors';
-import { expandRules, parseRulesParam } from './rules';
+import { expandRules, parseRulesSearchParams, type SubscriptionRule } from './rules';
 import { renderShadowrocketOutbounds } from './shadowrocket';
 import { composeSingboxConfig, renderSingboxOutbounds } from './sing-box';
 import type { Env } from '../types';
 
 export async function handleRequest(req: Request, env: Env): Promise<Response> {
+  if (req.method !== 'GET') {
+    return new Response('Method Not Allowed', {
+      status: 405,
+      headers: { Allow: 'GET' },
+    });
+  }
+
   const url = new URL(req.url);
 
   const assets = url.searchParams.get('assets');
@@ -15,12 +22,13 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
     return env.ASSETS.fetch(url);
   }
 
-  const rulesResult = parseRules(url.searchParams.get('rules'));
+  const rulesResult = parseRules(url.searchParams);
   if (rulesResult instanceof Response) {
     return rulesResult;
   }
 
-  const client = detectClient(url.searchParams.get('client'), req.headers.get('User-Agent'));
+  const explicitClient = url.searchParams.get('client') || url.searchParams.get('format');
+  const client = detectClient(explicitClient, req.headers.get('User-Agent'));
   if (!client) {
     return new Response('Unsupported client', { status: 400 });
   }
@@ -48,9 +56,9 @@ export async function handleRequest(req: Request, env: Env): Promise<Response> {
   }
 }
 
-function parseRules(rulesParam: string | null): SubscriptionRule[] | Response {
+function parseRules(searchParams: URLSearchParams): SubscriptionRule[] | Response {
   try {
-    return parseRulesParam(rulesParam);
+    return parseRulesSearchParams(searchParams);
   } catch (error) {
     if (error instanceof RuleParseError || error instanceof RuleValidationError) {
       return new Response(error.message, { status: 400 });
@@ -59,5 +67,3 @@ function parseRules(rulesParam: string | null): SubscriptionRule[] | Response {
     throw error;
   }
 }
-
-type SubscriptionRule = ReturnType<typeof parseRulesParam>[number];

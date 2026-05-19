@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { detectClient } from '../src/subscription/client';
 import { RuleParseError, RuleValidationError } from '../src/subscription/errors';
 import { handleRequest } from '../src/subscription/handler';
-import { expandRules, parseRulesParam, type SubscriptionRule } from '../src/subscription/rules';
+import { expandRules, parseRulesParam, parseRulesSearchParams, type SubscriptionRule } from '../src/subscription/rules';
 import { renderShadowrocketOutbounds } from '../src/subscription/shadowrocket';
 import { composeSingboxConfig, renderSingboxOutbounds } from '../src/subscription/sing-box';
 import type { Env } from '../src/types';
@@ -44,8 +44,10 @@ const env: Env = {
 describe('client detection', () => {
   it('supports explicit query aliases and supported user agents', () => {
     expect(detectClient('shadowrocket')).toBe('shadowrocket');
+    expect(detectClient('sr')).toBe('shadowrocket');
     expect(detectClient('sing-box')).toBe('sing-box');
     expect(detectClient('singbox')).toBe('sing-box');
+    expect(detectClient('sb')).toBe('sing-box');
     expect(detectClient('sfa')).toBe('sing-box');
     expect(detectClient('sfi')).toBe('sing-box');
     expect(detectClient(null, 'Shadowrocket/1999')).toBe('shadowrocket');
@@ -78,6 +80,20 @@ describe('rule parsing and expansion', () => {
     );
   });
 
+  it('supports repeated rule params and rejects mixed rule formats', () => {
+    const repeated = new URLSearchParams();
+    repeated.append('rule', JSON.stringify(vmessRule));
+    repeated.append('rule', JSON.stringify(hy2Rule));
+
+    expect(parseRulesSearchParams(repeated)).toEqual(parseRulesParam(JSON.stringify([vmessRule, hy2Rule])));
+
+    const mixed = new URLSearchParams();
+    mixed.set('rules', JSON.stringify([vmessRule]));
+    mixed.append('rule', JSON.stringify(hy2Rule));
+
+    expect(() => parseRulesSearchParams(mixed)).toThrow(RuleParseError);
+  });
+
   it('expands every rule across every remote server', () => {
     const rules = parseRulesParam(JSON.stringify([vmessRule]));
     const expanded = expandRules(remoteServers, rules);
@@ -101,8 +117,11 @@ describe('renderers', () => {
     expect(Buffer.from(vmessAuth || '', 'base64').toString('utf8')).toBe(
       'auto:00000000-0000-0000-0000-000000000000@203.0.113.10:443',
     );
-    expect(vmess).toContain('remarks=PROXY:vmess:jp.example-1');
-    expect(vmess).toContain('sni=jp-example-1.edge.example.com');
+    const vmessUrl = new URL(vmess);
+    expect(vmessUrl.searchParams.get('remarks')).toBe('PROXY:vmess:jp.example-1');
+    expect(vmessUrl.searchParams.get('obfsParam')).toBe('{"Host":"jp-example-1.edge.example.com"}');
+    expect(vmessUrl.searchParams.get('path')).toBe('/ws');
+    expect(vmessUrl.searchParams.get('sni')).toBe('jp-example-1.edge.example.com');
     expect(hy2).toBe('hysteria2://secret-password@203.0.113.10:8443?peer=jp-example-1.hy.example.com&obfs=none#FAST:hy2:jp.example-1');
   });
 
@@ -125,11 +144,26 @@ describe('renderers', () => {
 });
 
 describe('request handler', () => {
+  it('rejects non-GET requests', async () => {
+    const response = await handleRequest(new Request('https://example.com/sub', { method: 'POST' }), env);
+
+    expect(response.status).toBe(405);
+    expect(response.headers.get('Allow')).toBe('GET');
+  });
+
   it('keeps static asset forwarding independent from subscription validation', async () => {
     const response = await handleRequest(new Request('https://example.com/sub?assets=/shadowrocket.conf&rules=bad'), env);
 
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('/shadowrocket.conf');
+  });
+
+  it('keeps subscription generation independent from the request pathname', async () => {
+    const normalPath = await handleRequest(subscriptionRequest('shadowrocket', [vmessRule], '/sub'), env);
+    const obscurePath = await handleRequest(subscriptionRequest('shadowrocket', [vmessRule], '/anything/random'), env);
+
+    expect(obscurePath.status).toBe(200);
+    expect(await obscurePath.text()).toBe(await normalPath.text());
   });
 
   it('returns Shadowrocket subscriptions as base64 text', async () => {
@@ -151,6 +185,31 @@ describe('request handler', () => {
     });
   });
 
+  it('supports format and repeated rule query params', async () => {
+    const url = new URL('https://example.com/hidden-subscription');
+    url.searchParams.set('format', 'sr');
+    url.searchParams.append('rule', JSON.stringify(vmessRule));
+    url.searchParams.append('rule', JSON.stringify(hy2Rule));
+
+    const response = await handleRequest(new Request(url), env);
+    const decoded = Buffer.from(await response.text(), 'base64').toString('utf8');
+
+    expect(response.status).toBe(200);
+    expect(decoded).toContain('vmess://');
+    expect(decoded).toContain('hysteria2://');
+  });
+
+  it('supports the sing-box format alias', async () => {
+    const url = new URL('https://example.com/arbitrary');
+    url.searchParams.set('format', 'sb');
+    url.searchParams.set('rules', JSON.stringify([vmessRule]));
+
+    const response = await handleRequest(new Request(url), env);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8');
+  });
+
   it('returns 400 for unsupported clients and rules', async () => {
     const unsupportedClient = await handleRequest(subscriptionRequest('legacy-client', [vmessRule]), env);
     const unsupportedRule = await handleRequest(subscriptionRequest('shadowrocket', [{ ...vmessRule, protocol: 'trojan' }]), env);
@@ -160,10 +219,26 @@ describe('request handler', () => {
     expect(unsupportedRule.status).toBe(400);
     expect(await unsupportedRule.text()).toContain('unsupported protocol');
   });
+
+  it('returns 400 when rules and repeated rule params are mixed', async () => {
+    const url = new URL('https://example.com/sub');
+    url.searchParams.set('client', 'shadowrocket');
+    url.searchParams.set('rules', JSON.stringify([vmessRule]));
+    url.searchParams.append('rule', JSON.stringify(hy2Rule));
+
+    const response = await handleRequest(new Request(url), env);
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toContain('either rules or rule');
+  });
 });
 
-function subscriptionRequest(client: string, rules: Array<Record<string, unknown> | SubscriptionRule>): Request {
-  const url = new URL('https://example.com/sub');
+function subscriptionRequest(
+  client: string,
+  rules: Array<Record<string, unknown> | SubscriptionRule>,
+  path = '/sub',
+): Request {
+  const url = new URL(`https://example.com${path}`);
   url.searchParams.set('client', client);
   url.searchParams.set('rules', JSON.stringify(rules));
 

@@ -1,6 +1,6 @@
 import sbTemplate from '../sing-box-1.11.json';
 import { EnvConfigError } from './errors';
-import type { ExpandedRule } from './rules';
+import { matchExpandedRule, type ExpandedRule, type Hy2Rule, type VmessRule } from './rules';
 
 export type SingboxOutbound = Record<string, unknown> & {
   tag: string;
@@ -26,13 +26,12 @@ interface MutableSingboxConfig {
 }
 
 export function renderSingboxOutbounds(expandedRules: ExpandedRule[]): SingboxOutbound[] {
-  return expandedRules.map((expandedRule) => {
-    if (expandedRule.rule.protocol === 'vmess') {
-      return renderVmess(expandedRule);
-    }
-
-    return renderHy2(expandedRule);
-  });
+  return expandedRules.map((expandedRule) =>
+    matchExpandedRule(expandedRule, {
+      vmess: renderVmess,
+      hy2: renderHy2,
+    }),
+  );
 }
 
 export function composeSingboxConfig(env: SingboxEnv, outbounds: SingboxOutbound[], secret?: string | null): string {
@@ -77,11 +76,7 @@ export function composeSingboxConfig(env: SingboxEnv, outbounds: SingboxOutbound
   return JSON.stringify(tpl, null, 2);
 }
 
-function renderVmess({ rule, serverAddr, realHost, remark }: ExpandedRule): SingboxOutbound {
-  if (rule.protocol !== 'vmess') {
-    throw new Error('Expected vmess rule');
-  }
-
+function renderVmess(rule: VmessRule, { serverAddr, realHost, remark }: ExpandedRule): SingboxOutbound {
   return {
     tag: remark,
     type: 'vmess',
@@ -90,13 +85,7 @@ function renderVmess({ rule, serverAddr, realHost, remark }: ExpandedRule): Sing
     uuid: rule.uuid,
     security: 'aes-128-gcm',
     alter_id: 0,
-    tls: {
-      enabled: true,
-      insecure: false,
-      min_version: '1.2',
-      server_name: realHost,
-      utls: { enabled: false, fingerprint: 'chrome' },
-    },
+    tls: singboxTls(realHost),
     transport: {
       type: 'ws',
       headers: { Host: realHost },
@@ -109,11 +98,7 @@ function renderVmess({ rule, serverAddr, realHost, remark }: ExpandedRule): Sing
   };
 }
 
-function renderHy2({ rule, serverAddr, realHost, remark }: ExpandedRule): SingboxOutbound {
-  if (rule.protocol !== 'hy2') {
-    throw new Error('Expected hy2 rule');
-  }
-
+function renderHy2(rule: Hy2Rule, { serverAddr, realHost, remark }: ExpandedRule): SingboxOutbound {
   return {
     tag: remark,
     type: 'hysteria2',
@@ -122,12 +107,16 @@ function renderHy2({ rule, serverAddr, realHost, remark }: ExpandedRule): Singbo
     up_mbps: 100,
     down_mbps: 100,
     password: rule.password,
-    tls: {
-      enabled: true,
-      insecure: false,
-      min_version: '1.2',
-      server_name: realHost,
-      utls: { enabled: false, fingerprint: 'chrome' },
-    },
+    tls: singboxTls(realHost),
+  };
+}
+
+function singboxTls(serverName: string): Record<string, unknown> {
+  return {
+    enabled: true,
+    insecure: false,
+    min_version: '1.2',
+    server_name: serverName,
+    utls: { enabled: false, fingerprint: 'chrome' },
   };
 }

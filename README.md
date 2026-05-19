@@ -86,7 +86,9 @@ WARP_PRIVATE_KEY=replace-me
 
 ## HTTP 行为
 
-`src/index.ts` 暴露两种完全独立的请求模式。
+`src/index.ts` 只接受 `GET`，其他方法会返回 `405`。订阅生成不读取 pathname；只要请求命中 Worker route，`/worker-path`、`/anything/random` 这类路径都会按同一套逻辑处理。
+
+Worker 暴露两种完全独立的请求模式。
 
 ### 1. 静态资源
 
@@ -102,14 +104,16 @@ GET /worker-path?assets=shadowrocket.conf
 
 ### 2. 订阅生成
 
-当 `assets` 不存在时，Worker 期待查询参数里的 `rules` 是一个 JSON 编码后的数组。
+当 `assets` 不存在时，Worker 期待查询参数里提供 `rules` 或重复的 `rule` 参数，二者不能混用。
 
 支持的查询参数：
 
 | 参数     | 必填 | 含义                                                                     |
 | -------- | ---- | ------------------------------------------------------------------------ |
-| `rules`  | 是   | 用来生成 outbound 的 JSON 编码规则数组。                                 |
+| `rules`  | 二选一 | 用来生成 outbound 的 JSON 编码规则数组。                               |
+| `rule`   | 二选一 | 单条 JSON 编码规则；可以重复传入多条。                                  |
 | `client` | 否   | 覆盖客户端识别结果；未提供时会读取 `User-Agent`。                        |
+| `format` | 否   | `client` 的别名；当 `client` 不存在时生效。                              |
 | `secret` | 否   | 只在生成 `sing-box` 输出时使用，会写入 `experimental.clash_api.secret`。 |
 
 每个规则对象必须包含 `tag`、`protocol`、`host`。`port` 可省略，默认是 `443`。
@@ -135,6 +139,12 @@ Shadowrocket 本地请求示例：
 curl -G -H 'User-agent: shadowrocket/' 'http://localhost:8787/' --data-urlencode 'rules=[{"tag":"proxy","protocol":"hy2","host":"foo.com","password":"password"}]'
 ```
 
+等价的重复 `rule` 写法：
+
+```shell
+curl -G 'http://localhost:8787/anything/random' --data-urlencode 'format=sr' --data-urlencode 'rule={"tag":"proxy","protocol":"hy2","host":"foo.com","password":"password"}'
+```
+
 ## 运行时变量
 
 | 变量               | 使用位置               | 作用                                                                                      |
@@ -149,7 +159,7 @@ curl -G -H 'User-agent: shadowrocket/' 'http://localhost:8787/' --data-urlencode
 - `Shadowrocket`：返回 base64 编码后的纯文本订阅，内容是生成出的 `vmess://` / `hysteria2://` 链接。
 - `sing-box` Android / iOS：返回基于 `src/sing-box-1.11.json` 拼装出的 JSON 配置，并把生成节点追加到 selector 与 urltest 分组中。
 
-客户端识别优先使用显式传入的 `client` 参数，否则读取请求头中的 `User-Agent`。当前内置识别标记如下：
+客户端识别优先使用显式传入的 `client` 参数，其次使用 `format`，否则读取请求头中的 `User-Agent`。当前内置识别标记如下：
 
-- 显式 `client`：`shadowrocket`、`sing-box`、`singbox`、`sfa`、`sfi`
+- 显式 `client` / `format`：`shadowrocket`、`sr`、`sing-box`、`singbox`、`sb`、`sfa`、`sfi`
 - `User-Agent`：`shadowrocket/`、`sfa/`、`sfi/`

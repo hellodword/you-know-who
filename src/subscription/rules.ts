@@ -31,6 +31,25 @@ export interface ExpandedRule {
 }
 
 type RuleRecord = Record<string, unknown>;
+type ProtocolMatcher<T> = {
+  vmess: (rule: VmessRule, expandedRule: ExpandedRule) => T;
+  hy2: (rule: Hy2Rule, expandedRule: ExpandedRule) => T;
+};
+
+export function parseRulesSearchParams(searchParams: URLSearchParams): SubscriptionRule[] {
+  const rulesParam = searchParams.get('rules');
+  const ruleParams = searchParams.getAll('rule');
+
+  if (rulesParam !== null && ruleParams.length > 0) {
+    throw new RuleParseError('Use either rules or rule parameters, not both');
+  }
+
+  if (ruleParams.length > 0) {
+    return ruleParams.map(parseRuleParam);
+  }
+
+  return parseRulesParam(rulesParam);
+}
 
 export function parseRulesParam(value?: string | null): SubscriptionRule[] {
   let parsed: unknown;
@@ -51,6 +70,14 @@ export function parseRulesParam(value?: string | null): SubscriptionRule[] {
   return parsed.map(validateRule);
 }
 
+export function matchExpandedRule<T>(expandedRule: ExpandedRule, matcher: ProtocolMatcher<T>): T {
+  if (expandedRule.rule.protocol === 'vmess') {
+    return matcher.vmess(expandedRule.rule, expandedRule);
+  }
+
+  return matcher.hy2(expandedRule.rule, expandedRule);
+}
+
 export function expandRules(servers: unknown, rules: SubscriptionRule[]): ExpandedRule[] {
   const normalizedServers = validateRemoteServers(servers);
 
@@ -63,6 +90,18 @@ export function expandRules(servers: unknown, rules: SubscriptionRule[]): Expand
       remark: `${rule.tag}:${rule.protocol}:${serverName}`,
     })),
   );
+}
+
+function parseRuleParam(value: string, index: number): SubscriptionRule {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new RuleParseError(`Invalid rule ${index} format`);
+  }
+
+  return validateRule(parsed, index);
 }
 
 function validateRule(raw: unknown, index: number): SubscriptionRule {
