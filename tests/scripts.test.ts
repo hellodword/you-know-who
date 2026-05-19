@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { assertBaseTemplateHasNoPrivateFields, topologicalSort } from '../scripts/common';
+import {
+  assertBaseTemplateHasNoPrivateFields,
+  resolveProvidedWorkerWranglerArgs,
+  topologicalSort,
+  workerConfigArgs,
+  workerConfigArgsForNames,
+} from '../scripts/common';
 
 describe('wrangler config helpers', () => {
   it('sorts service dependencies before dependents', () => {
@@ -34,5 +40,38 @@ describe('wrangler config helpers', () => {
     expect(() => assertBaseTemplateHasNoPrivateFields({ main: 'src/index.ts' })).not.toThrow();
     expect(() => assertBaseTemplateHasNoPrivateFields({ routes: [] })).toThrow('routes');
     expect(() => assertBaseTemplateHasNoPrivateFields({ vars: {} })).toThrow('vars');
+  });
+
+  it('builds wrangler config arguments consistently', () => {
+    expect(workerConfigArgs('sub-generator')).toEqual(['--config', 'sub-generator-wrangler.json']);
+    expect(workerConfigArgsForNames(['outer', 'provider'])).toEqual([
+      '--config',
+      'outer-wrangler.json',
+      '--config',
+      'provider-wrangler.json',
+    ]);
+  });
+
+  it('recognizes worker names before or after the wrangler command', () => {
+    const workers = {
+      provider: {},
+      consumer: {
+        services: [{ binding: 'UPSTREAM', service: 'provider' }],
+      },
+    };
+
+    expect(resolveProvidedWorkerWranglerArgs(['consumer', 'dev', '--local'], workers)).toEqual([
+      '--config',
+      'consumer-wrangler.json',
+      'dev',
+      '--local',
+    ]);
+    expect(resolveProvidedWorkerWranglerArgs(['deploy', 'consumer', '--dry-run'], workers)).toEqual([
+      '--config',
+      'consumer-wrangler.json',
+      'deploy',
+      '--dry-run',
+    ]);
+    expect(resolveProvidedWorkerWranglerArgs(['deploy'], workers)).toBeNull();
   });
 });

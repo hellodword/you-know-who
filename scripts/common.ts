@@ -1,10 +1,7 @@
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import { isCancel, select } from '@clack/prompts';
 import { parse, type ParseError } from 'jsonc-parser';
-
-export interface ServiceBindingConfig {
-  service?: unknown;
-}
 
 export interface WorkerConfig {
   services?: unknown;
@@ -12,6 +9,8 @@ export interface WorkerConfig {
 }
 
 export type WorkerConfigMap = Record<string, WorkerConfig>;
+
+const WRANGLER_CUSTOM_CONFIG = 'wrangler-custom.json';
 
 // Local wrangler config files use JSONC so operators can keep comments in templates.
 export function readJsoncFile<T = unknown>(filePath: string): T {
@@ -24,6 +23,10 @@ export function readJsoncFile<T = unknown>(filePath: string): T {
   }
 
   return parsed as T;
+}
+
+export function readWorkerConfigMap(filePath = WRANGLER_CUSTOM_CONFIG): WorkerConfigMap {
+  return readJsoncFile<WorkerConfigMap>(filePath);
 }
 
 export function assertBaseTemplateHasNoPrivateFields(config: unknown, filePath = 'wrangler.json.template'): void {
@@ -100,6 +103,52 @@ export async function selectWorker(data: WorkerConfigMap): Promise<string> {
   }
 
   return projectType;
+}
+
+export function workerConfigArgs(name: string): string[] {
+  return ['--config', `${name}-wrangler.json`];
+}
+
+export function workerConfigArgsForNames(names: string[]): string[] {
+  return names.flatMap(workerConfigArgs);
+}
+
+export function resolveProvidedWorkerWranglerArgs(args: string[], data: WorkerConfigMap): string[] | null {
+  const firstArg = args[0];
+  const secondArg = args[1];
+
+  if (firstArg && firstArg in data) {
+    return [...workerConfigArgs(firstArg), ...args.slice(1)];
+  }
+
+  if (secondArg && secondArg in data) {
+    return [...workerConfigArgs(secondArg), firstArg, ...args.slice(2)];
+  }
+
+  return null;
+}
+
+export function runWrangler(args: string[]): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const child = spawn('npx', ['wrangler', ...args], {
+      stdio: 'inherit',
+      env: { ...process.env, FORCE_COLOR: '1' },
+    });
+
+    child.on('error', reject);
+    child.on('close', (code) => {
+      resolve(code ?? 1);
+    });
+  });
+}
+
+export async function runEntrypoint(fn: () => Promise<number> | number): Promise<void> {
+  try {
+    process.exit(await fn());
+  } catch (error) {
+    console.error(`An unexpected error occurred: ${errorMessage(error)}`);
+    process.exit(1);
+  }
 }
 
 export function errorMessage(error: unknown): string {

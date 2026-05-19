@@ -2,14 +2,14 @@ import fs from 'node:fs';
 import {
   assertBaseTemplateHasNoPrivateFields,
   readJsoncFile,
+  readWorkerConfigMap,
   topologicalSort,
-  type WorkerConfigMap,
 } from './common.ts';
 
 const wranglerJsonTpl = readJsoncFile<Record<string, unknown>>('wrangler.json.template');
 assertBaseTemplateHasNoPrivateFields(wranglerJsonTpl);
 
-const customJson = readJsoncFile<WorkerConfigMap>('wrangler-custom.json');
+const customJson = readWorkerConfigMap();
 topologicalSort(customJson);
 
 // Merge shared defaults with each private worker override into generated wrangler configs.

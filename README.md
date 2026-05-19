@@ -9,7 +9,7 @@
 
 - `src/index.ts`：Worker 入口。根据请求分流到静态资源或订阅生成逻辑。
 - `src/subscription/`：客户端识别、规则校验、订阅渲染与 `sing-box` 配置拼装逻辑。
-- `src/sing-box-1.11.json`：`sing-box` 基础模板。运行时会把生成出的节点追加进去。
+- `src/sing-box-1.11.json`：`sing-box` 1.11 基础模板。iOS 版 `sing-box` 发布受阻并停留在 1.11，所以这里固定使用 1.11 模板；运行时会把生成出的节点追加进去。
 - `assets/`：通过 `?assets=...` 暴露的静态规则文件。
 - `wrangler.json.template`：提交到仓库的共享 Wrangler 默认配置。
 - `wrangler-custom.json`：私有的、按环境区分的 Worker 定义，不提交。
@@ -76,7 +76,13 @@ WARP_PRIVATE_KEY=replace-me
 - `npm run check`：执行 TypeScript 类型检查。
 - `npm test`：运行 Vitest 测试。
 
-脚本链路和维护约定见 [`docs/maintenance.md`](docs/maintenance.md)。
+## 配置与脚本维护
+
+`wrangler.json.template` 是共享默认配置；`wrangler-custom.json` 是私有 overlay，被 Git 忽略。`scripts/generate.ts` 会把两者合并成每个 Worker 对应的 `*-wrangler.json`，并把 `wrangler-custom.json` 的顶层 key 写入最终配置的 `name` 字段。共享模板不得包含 `routes` 或 `vars`，这些字段必须来自私有 overlay。
+
+`wrangler-custom.json` 可以通过 `services[].service` 声明同文件内另一个 Worker 的 service binding 依赖。脚本会校验缺失依赖和循环依赖：`deploy:all` 按依赖优先顺序部署，`dev:all` 在同一个本地开发会话里按反向顺序把所有 `--config` 传给 `wrangler dev`。
+
+修改订阅规则、客户端识别或 `sing-box` 模板时，要同步更新 README 和测试。`sing-box` 输出会以 `src/sing-box-1.11.json` 为模板，追加生成出的 outbounds，并把它们的 tag 写入已有的 selector 与 urltest 分组。
 
 ## HTTP 行为
 
@@ -122,6 +128,12 @@ GET /worker-path?assets=shadowrocket.conf
 ```
 
 对于 `hy2`，使用 `password`，而不是 `uuid` / `path`。不支持的客户端或规则会返回 `400`。
+
+Shadowrocket 本地请求示例：
+
+```shell
+curl -G -H 'User-agent: shadowrocket/' 'http://localhost:8787/' --data-urlencode 'rules=[{"tag":"proxy","protocol":"hy2","host":"foo.com","password":"password"}]'
+```
 
 ## 运行时变量
 
