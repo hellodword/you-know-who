@@ -176,3 +176,8 @@ dist
 /*wrangler.json
 /wrangler-custom.json
 !wrangler.*.template
+
+.agents
+AGENTS.md
+.devcontainer
+.vscode
