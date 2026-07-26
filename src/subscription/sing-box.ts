@@ -1,4 +1,5 @@
-import sbTemplate from '../sing-box-1.11.json';
+import sb111Template from '../sing-box-1.11.json';
+import sb113Template from '../sing-box-1.13';
 import { EnvConfigError } from './errors';
 import { matchExpandedRule, type ExpandedRule, type Hy2Rule, type VmessRule } from './rules';
 
@@ -6,6 +7,8 @@ export type SingboxOutbound = Record<string, unknown> & {
   tag: string;
   type: string;
 };
+
+export type SingboxTarget = '1.11' | '1.13';
 
 interface SingboxEnv {
   WARP_IPV6?: string;
@@ -34,7 +37,12 @@ export function renderSingboxOutbounds(expandedRules: ExpandedRule[]): SingboxOu
   );
 }
 
-export function composeSingboxConfig(env: SingboxEnv, outbounds: SingboxOutbound[], secret?: string | null): string {
+export function composeSingboxConfig(
+  env: SingboxEnv,
+  outbounds: SingboxOutbound[],
+  target: SingboxTarget,
+  secret?: string | null,
+): string {
   if (!env.WARP_IPV6) {
     throw new EnvConfigError('WARP_IPV6 is not configured');
   }
@@ -42,7 +50,7 @@ export function composeSingboxConfig(env: SingboxEnv, outbounds: SingboxOutbound
     throw new EnvConfigError('WARP_PRIVATE_KEY is not configured');
   }
 
-  const tpl = structuredClone(sbTemplate) as MutableSingboxConfig;
+  const tpl = structuredClone(target === '1.11' ? sb111Template : sb113Template) as MutableSingboxConfig;
   tpl.outbounds = tpl.outbounds || [];
   tpl.outbounds.push(...outbounds);
 

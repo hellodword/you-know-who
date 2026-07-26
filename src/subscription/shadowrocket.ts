@@ -17,10 +17,15 @@ function renderVmess(rule: VmessRule, { serverAddr, realHost, remark }: Expanded
     path: rule.path,
     obfs: 'websocket',
     tls: '1',
-    mux: '1',
     alterId: '0',
     sni: realHost,
   });
+
+  if (rule.tag.toLowerCase().startsWith('chain:')) {
+    params.set('chain', 'CHAIN');
+  } else {
+    params.set('mux', '1');
+  }
 
   return `vmess://${base64Encode(`auto:${rule.uuid}@${serverAddr}:${rule.port}`)}?${params.toString()}`;
 }

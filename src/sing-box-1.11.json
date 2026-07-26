@@ -467,7 +467,7 @@
       { "protocol": "dns", "action": "hijack-dns" },
       { "clash_mode": "direct", "outbound": "out:DIRECT" },
       { "clash_mode": "global", "outbound": "GLOBAL" },
-      { "rule_set": ["lyc8503:geosite:category:cryptocurrency", "lyc8503:geosite:category:cryptocurrency@cn"], "outbound": "🔒 加密货币" },
+      { "rule_set": ["lyc8503:geosite:category:cryptocurrency", "lyc8503:geosite:category:cryptocurrency@cn"], "outbound": "💲 加密货币" },
       {
         "rule_set": [
           "lyc8503:geosite:protonmail",
