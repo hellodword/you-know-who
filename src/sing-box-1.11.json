@@ -64,7 +64,7 @@
   "outbounds": [
     { "type": "socks", "server": "127.0.0.1", "server_port": 2081, "tag": "out:REJECT" },
     { "type": "direct", "domain_strategy": "prefer_ipv4", "tag": "out:DIRECT" },
-    { "type": "selector", "tag": "🚀 节点选择", "outbounds": ["out:REJECT", "out:DIRECT", "out:WARP", "⚡ 自动选择"] },
+    { "type": "selector", "tag": "🚀 节点选择", "outbounds": ["out:REJECT", "out:DIRECT", "out:WARP", "⚡ 自动选择"], "default": "⚡ 自动选择" },
     { "type": "urltest", "tag": "⚡ 自动选择", "outbounds": [] },
     { "type": "selector", "tag": "GLOBAL", "outbounds": ["🚀 节点选择", "out:DIRECT", "out:REJECT", "out:WARP", "⚡ 自动选择"] },
     { "type": "selector", "tag": "🏠 私有网络", "outbounds": ["out:DIRECT", "out:REJECT", "🚀 节点选择", "⚡ 自动选择"] },

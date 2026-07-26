@@ -253,6 +253,32 @@ describe('renderers', () => {
     );
   });
 
+  it.each(['1.11', '1.13'] as const)(
+    'defaults sing-box %s to automatic node selection without an external UI',
+    (target) => {
+      const generatedOutbounds = renderSingboxOutbounds(
+        expandRules({ '203.0.113.10': 'jp.example-1' }, parseRulesParam(JSON.stringify([vmessRule]))),
+      );
+      const config = JSON.parse(composeSingboxConfig(env, generatedOutbounds, target)) as {
+        outbounds: Array<{
+          type: string;
+          tag: string;
+          outbounds?: string[];
+          default?: string;
+        }>;
+        experimental?: { clash_api?: unknown };
+      };
+      const selector = config.outbounds.find((outbound) => outbound.tag === '🚀 节点选择');
+      const automatic = config.outbounds.find((outbound) => outbound.tag === '⚡ 自动选择');
+
+      expect(selector?.default).toBe('⚡ 自动选择');
+      expect(selector?.outbounds?.[0]).toBe('out:REJECT');
+      expect(selector?.outbounds).toContain('out:REJECT');
+      expect(automatic?.outbounds).toContain(generatedOutbounds[0].tag);
+      expect(config.experimental?.clash_api).toBeUndefined();
+    },
+  );
+
   it('keeps the SFI template on sing-box 1.11 fields', () => {
     const outbounds = renderSingboxOutbounds(expandRules({ '203.0.113.10': 'jp.example-1' }, parseRulesParam(JSON.stringify([vmessRule]))));
     const config = JSON.parse(composeSingboxConfig(env, outbounds, '1.11')) as {

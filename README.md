@@ -191,6 +191,8 @@ curl -G 'http://localhost:8787/anything/random' --data-urlencode 'format=sr' --d
 
 SFI 始终使用 1.11；SFA、Karing 和不带平台信息的通用 sing-box 别名使用 1.13。Android 客户端标记按 `SFA` 识别，不提供 `sfb` 别名。Karing 允许自定义订阅 UA；如果 UA 中没有 `Karing/`，应在订阅 URL 中显式加入 `client=karing`。
 
+两版 sing-box 配置都把 `"🚀 节点选择"` 的默认出口设为 `"⚡ 自动选择"`。因此在客户端没有 external_ui、且没有已保存 selector 选择时，会自动测速并使用生成节点，而不会因候选列表首项是 `out:REJECT` 而默认断网；已经持久化的用户选择仍由客户端优先使用。
+
 Shadowrocket 的 VMess 链接按规则 tag 大小写不敏感地区分：
 
 - `chain:` 开头：输出 `chain=CHAIN`，不输出 `mux`。
