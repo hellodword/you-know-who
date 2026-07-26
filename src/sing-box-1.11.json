@@ -30,7 +30,6 @@
           "lyc8503:geosite:huaweicloud@!cn",
           "lyc8503:geosite:jd@!cn",
           "lyc8503:geosite:qcloud@!cn",
-          "lyc8503:geosite:tencent-games@!cn",
           "lyc8503:geosite:tencent@!cn",
           "lyc8503:geosite:tiktok@!cn",
           "lyc8503:geosite:xiaomi@!cn"
@@ -205,20 +204,6 @@
         "type": "remote",
         "format": "binary",
         "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/refs/heads/rule-set-geosite/geosite-qcloud@!cn.srs",
-        "download_detour": "⚡ 自动选择"
-      },
-      {
-        "tag": "lyc8503:geosite:tencent-games@!cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/refs/heads/rule-set-geosite/geosite-tencent-games@!cn.srs",
-        "download_detour": "⚡ 自动选择"
-      },
-      {
-        "tag": "lyc8503:geosite:tencent@!cn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://raw.githubusercontent.com/lyc8503/sing-box-rules/refs/heads/rule-set-geosite/geosite-tencent@!cn.srs",
         "download_detour": "⚡ 自动选择"
       },
       {
@@ -506,8 +491,6 @@
           "lyc8503:geosite:huaweicloud@!cn",
           "lyc8503:geosite:jd@!cn",
           "lyc8503:geosite:qcloud@!cn",
-          "lyc8503:geosite:tencent-games@!cn",
-          "lyc8503:geosite:tencent@!cn",
           "lyc8503:geosite:tiktok@!cn",
           "lyc8503:geosite:xiaomi@!cn"
         ],

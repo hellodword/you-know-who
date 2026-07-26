@@ -67,8 +67,6 @@ template.dns = {
         'lyc8503:geosite:huaweicloud@!cn',
         'lyc8503:geosite:jd@!cn',
         'lyc8503:geosite:qcloud@!cn',
-        'lyc8503:geosite:tencent-games@!cn',
-        'lyc8503:geosite:tencent@!cn',
         'lyc8503:geosite:tiktok@!cn',
         'lyc8503:geosite:xiaomi@!cn',
       ],
