@@ -26,7 +26,6 @@ template.dns = {
       type: 'tls',
       tag: 'dns:direct',
       server: '1.12.12.12',
-      detour: 'out:DIRECT',
     },
     {
       type: 'local',
